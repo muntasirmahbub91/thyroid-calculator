@@ -1,0 +1,16 @@
+:root, html, body, #root {
+  color-scheme: light;
+  background: #f5f7fb;
+  color: #0f172a;
+}
+
+input, select, textarea {
+  background: #fff !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important; /* Chrome/Safari autofill */
+}
+
+input:-moz-autofill {
+  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -moz-text-fill-color: #0f172a !important;
+}
