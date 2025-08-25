@@ -1,4 +1,4 @@
-import React from "react";
+// src/App.tsx
 import ThyroidCalculator from "./ThyroidCalculator";
 
 export default function App() {
