@@ -195,3 +195,41 @@ html,body,#root{height:100%;background:var(--bg);color:var(--text)}
 
 /* ---------- Animations ---------- */
 @keyframes modalSlideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+/* ---------- Appointment modal action buttons ---------- */
+.appointmentActions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.btnAction {
+  flex: 1;
+  min-width: 160px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 16px 28px;
+  font-weight: 800;
+  font-size: 18px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  transition: background .25s, transform .15s, filter .2s;
+  box-shadow: 0 6px 0 #1e3a5f, 0 12px 20px rgba(60,99,130,.35);
+}
+
+.btnAction:hover {
+  background: var(--blue-700);
+  transform: translateY(-1px);
+}
+
+.btnAction.green {
+  background: linear-gradient(var(--green-cta), var(--green-cta-dark));
+  box-shadow: 0 6px 0 #0f6a32, 0 12px 20px rgba(34,197,94,.35);
+}
+.btnAction.green:hover {
+  filter: brightness(1.05);
+}
