@@ -25,7 +25,7 @@ export default function ThyroidCalculator() {
   const [result, setResult] = useState<string>("Indeterminate");
   const [hasCalculated, setHasCalculated] = useState<boolean>(false);
   const [activeModal, setActiveModal] = useState<Modal>(null);
-  const firstInputRef = useRef<HTMLInputElement | null>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null!);
 
   const enteredCount = useMemo(
     () =>

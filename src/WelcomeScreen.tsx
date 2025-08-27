@@ -1,5 +1,4 @@
 // src/WelcomeScreen.tsx
-import React from "react";
 
 type Props = { transitioning: boolean; onStart: () => void };
 
