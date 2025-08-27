@@ -1,68 +1,197 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+/* ---------- Fonts (must be first) ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;600;800&display=swap');
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* ---------- Reset ---------- */
+*{margin:0;padding:0;box-sizing:border-box}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* ---------- Design tokens ---------- */
+:root{
+  --blue:#3c6382;
+  --blue-700:#2d4f69;
+  --blue-soft:#567c9a;
+  --blue-soft-hover:#456680;
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+  --green-cta:#22c55e;
+  --green-cta-dark:#16a34a;
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  --red:#dc2626;
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --text:#0f172a;
+
+  --radius:12px;
+  --shadow-sm:0 4px 14px rgba(0,0,0,.10);
+  --shadow-md:0 8px 24px rgba(0,0,0,.16);
+  --shadow-lg:0 16px 40px rgba(0,0,0,.22);
+
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* ---------- Root ---------- */
+html,body,#root{height:100%;background:var(--bg);color:var(--text)}
+.app-root{min-height:100%;display:grid;place-items:center;padding:24px}
+
+/* ---------- Welcome screen ---------- */
+.welcome-screen{
+  position:absolute;inset:0;background:#eaf6fb;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px
+}
+.welcome-container{position:relative;display:inline-block}
+.welcome-image{
+  width:min(88vw,480px);height:auto;object-fit:contain;display:block;pointer-events:none
+}
+/* Default button look */
+.start-button{
+  position:relative; /* base state */
+  background:var(--blue);color:#fff;border:none;border-radius:var(--radius);
+  padding:14px 28px;font-weight:800;
+  font-size:clamp(16px,2.2vw,20px);min-width:200px;
+  box-shadow:var(--shadow-md);cursor:pointer;transition:transform .2s,background .25s
+}
+.start-button:hover{transform:scale(1.05);background:var(--blue-700)}
+/* Absolute placement over the image */
+.welcome-container .start-button{
+  position:absolute;left:50%;transform:translateX(-50%);
+  bottom:18%; /* tweak to align with chest; higher % = higher on screen */
+  z-index:2;
+}
+/* Optional hard override helper */
+.start-abs{position:absolute!important;left:50%!important;transform:translateX(-50%)!important;bottom:18%!important;z-index:2!important}
+
+/* ---------- App container: full-height phone fill ---------- */
+.calc-wrap{position:relative;inset:0;height:100vh;overflow:auto}
+.container{
+  max-width:640px;margin:0 auto;
+  padding:12px 16px 8px;
+  min-height:100vh;display:flex;flex-direction:column;
+  background:linear-gradient(#fff,#f7fbff)
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+/* ---------- Heading ---------- */
+.heading{text-align:center;margin-bottom:2px}
+.script{font-family:Georgia,serif;font-weight:600;color:#64748b}
+.title{font-size:22px;font-weight:900;line-height:1.1;margin-top:2px}
+
+/* ---------- Card grows to consume height ---------- */
+.card{
+  flex:1;
+  background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-sm);
+  padding:20px;display:flex;flex-direction:column;gap:16px;
+  max-width:600px;margin:0 auto
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* ---------- Field rows (narrow inputs) ---------- */
+.row{
+  display:grid;
+  grid-template-columns:120px minmax(180px,260px) 70px;
+  gap:14px;align-items:center
 }
+.labelBox label{font-weight:600}
+.inputBox{max-width:260px}
+.inputBox .input{
+  width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:15px
+}
+.hint{font-size:12px;color:#64748b;margin-top:4px}
+.unit{display:grid;place-items:center;font-size:13px;color:#334155}
+
+/* ---------- Buttons ---------- */
+.btn{
+  background:var(--blue);color:#fff;border:none;padding:12px;border-radius:var(--radius);
+  font-weight:700;cursor:pointer;transition:background .25s,transform .15s
+}
+.btn:hover{background:var(--blue-700);transform:translateY(-1px)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+/* Big Calculate bar */
+.btnPrimary{
+  background:var(--blue-soft);
+  font-size:22px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;
+  padding:18px;border-radius:18px;
+  align-self:center;width:100%;max-width:460px
+}
+.btnPrimary:hover{background:var(--blue-soft-hover)}
+
+/* 3-D green Next */
+.btnNextLg{
+  background:linear-gradient(var(--green-cta),var(--green-cta-dark));color:#fff;border:0;
+  padding:18px 28px;border-radius:14px;font-weight:900;font-size:18px;
+  box-shadow:0 6px 0 #0f6a32,0 12px 20px rgba(34,197,94,.35);
+  transition:transform .15s,box-shadow .15s
+}
+.btnNextLg:hover{filter:brightness(1.05)}
+.btnNextLg:active{transform:translateY(1px);box-shadow:0 3px 0 #0f6a32,0 8px 14px rgba(34,197,94,.3)}
+
+.btnSm{background:#e2e8f0;color:#0f172a;border:0;padding:10px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+.btnSmBlue{background:var(--blue);color:#fff;border:0;padding:10px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+
+/* Modal action buttons */
+.modalActions{display:flex;gap:12px;justify-content:flex-end;margin-top:22px}
+.modalBtn{
+  background:var(--blue);color:#fff;border:none;border-radius:12px;padding:14px 22px;
+  font-weight:700;font-size:15px;cursor:pointer;transition:background .2s
+}
+.modalBtn:hover{background:var(--blue-700)}
+
+/* ---------- Result box ---------- */
+.resultBox{margin-top:12px;padding:16px 20px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0}
+.resultPill{background:#e0f2fe;border-radius:12px;padding:16px 18px}
+.resultPill .pillTitle{font-weight:700;margin-bottom:4px}
+.resultPill .pillOutcome{font-size:26px;font-weight:900;color:var(--red)}
+.adviceRow{margin-top:12px;display:flex;align-items:flex-start;gap:14px}
+.adviceCard{
+  flex:1;background:#fff;border-radius:10px;padding:14px 16px;
+  font-family:'Hind Siliguri',sans-serif;line-height:1.9;box-shadow:0 4px 10px rgba(0,0,0,.08)
+}
+.adviceLine{display:flex;gap:8px}
+
+/* ---------- Footer pinned ---------- */
+.footer{margin-top:auto;text-align:center;font-size:12px;color:#64748b;padding:8px 0 10px}
+
+/* ---------- Backdrop & modals ---------- */
+.backdrop{position:fixed;inset:0;background:rgba(15,23,42,.42);display:grid;place-items:center}
+.modal{
+  width:min(92%,460px);background:#fff;border-radius:14px;box-shadow:var(--shadow-lg);
+  padding:28px 26px;position:relative;min-height:280px;line-height:1.85;
+  font-family:'Hind Siliguri',sans-serif;font-weight:300;font-size:16px
+}
+.modal.modalAppointment{
+  width:min(92%,600px);min-height:500px;padding:32px 28px;border-radius:18px;line-height:1.9
+}
+.modal.modalAbnormal{
+  width:min(92%,480px);min-height:340px;padding:32px 28px;border-radius:16px;line-height:1.9
+}
+.close{position:absolute;right:14px;top:10px;background:transparent;border:0;font-size:22px;line-height:1;cursor:pointer;color:#334155}
+
+/* ---------- Help modal ---------- */
+.modal.modalHelp{
+  width:min(92%,560px);padding:26px 22px;border-radius:18px;min-height:420px;
+  animation:modalSlideUp .35s ease;font-family:'Hind Siliguri',sans-serif;font-weight:300;line-height:1.85
+}
+.modalTitle{font-weight:800;font-size:26px;color:#1f3f47;margin:2px 0 18px;text-align:center}
+.helpList{display:flex;flex-direction:column;gap:24px}
+
+/* Help items match Calculate button; icons blue inside white circles */
+.helpItem{
+  display:flex;align-items:center;gap:16px;cursor:pointer;
+  padding:14px 18px;border-radius:12px;
+  background:var(--blue);color:#fff;
+  transition:transform .2s,background .2s,box-shadow .2s;text-decoration:none
+}
+.helpItem:hover{background:var(--blue-700);transform:translateX(4px);box-shadow:0 6px 16px rgba(60,99,130,.3)}
+.helpIcon{
+  flex:0 0 50px;height:50px;border-radius:50%;
+  background:#fff;display:grid;place-items:center;
+  font-size:22px;font-weight:700;color:var(--blue)
+}
+.helpText{color:#fff;font-weight:700;font-size:16px}
+
+/* ---------- Responsive tweaks ---------- */
+@media (max-width:420px){
+  .row{grid-template-columns:105px minmax(170px,1fr) 56px;gap:12px}
+  .inputBox{max-width:240px}
+  .btnPrimary{max-width:520px}
+}
+
+/* ---------- Animations ---------- */
+@keyframes modalSlideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
