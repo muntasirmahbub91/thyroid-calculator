@@ -300,3 +300,17 @@ button.btn:hover:not(.btn-green), a.btn:hover:not(.btn-green),
   .container { padding: 8px !important; }
   .row { grid-template-columns: 95px 1fr 45px !important; }
 }
+/* iOS: prevent zoom on input focus */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea {
+    font-size:16px !important;   /* >=16px stops Safari zoom */
+  }
+}
+
+/* Ensure our compact styles don't drop below 16 on phones */
+@media (max-width:480px){
+  .inputBox .input{ font-size:16px !important; }
+}
+
+/* Optional: keep system text scaling sane */
+html{ -webkit-text-size-adjust:100%; }

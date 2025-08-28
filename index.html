@@ -1,15 +1,31 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <link rel="icon" href="/vite.svg" type="image/svg+xml" />
+
+    <!-- Viewport: no auto-zoom on iOS, safe areas supported -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <!-- Light theme only (matches your CSS tokens) -->
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#ffffff" />
+
+    <!-- Optional but helpful -->
+    <meta name="description" content="Dr. Muntasir’s Thyroid Calculator." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Thyroid Calculator" />
+
+    <!-- Fonts: preconnect to speed up Hind Siliguri load -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
     <title>Thyroid Calculator</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <noscript>This app requires JavaScript to run.</noscript>
   </body>
 </html>
