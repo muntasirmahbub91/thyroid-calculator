@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 
 /* External links and phone */
 const YT_URL = "https://www.youtube.com/@drmuntasirmahbub2385";
-const MAPS_URL = "https://maps.app.goo.gl/fujFwJgY61Z3P5g37?g_st=ipc";
+const MAPS_URL = "https://maps.app.goo.gl/6xvYWvfHXJxeqEDj8";
 const PHONE = "01303801712";
 
 /* Types */

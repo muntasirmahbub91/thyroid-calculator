@@ -10,7 +10,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 
 /* Tokens */
-:root{
+:root {
   --blue:#4f9dd9; --blue-700:#3579ad;
   --green-cta:#34d399; --green-cta-dark:#059669;
   --red:#dc2626;
@@ -23,8 +23,12 @@
   --shadow-lg:0 6px 12px rgba(0,0,0,.12);
 
   --max-page:640px;
-  font-family: 'Hind Siliguri', sans-serif;
-  color-scheme:light;
+
+  font-family: 'Hind Siliguri', sans-serif;   /* ✅ ONLY Hind Siliguri */
+  color-scheme: light;
+}
+html, body, button, input, textarea, select {
+  font-family: 'Hind Siliguri', sans-serif !important;
 }
 
 /* Root */
