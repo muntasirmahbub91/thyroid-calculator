@@ -11,7 +11,24 @@ type Inputs = { tsh: string; ft4: string; ft3: string; tt4: string; tt3: string 
 type InputKey = keyof Inputs;
 type Modal = "A" | "B" | "C" | "D" | null;
 
-/* Reference ranges */
+type ResultType =
+  | "normal"
+  | "hypo"
+  | "hyper"
+  | "sub-hypo"
+  | "sub-hyper"
+  | "possible-hypo"
+  | "possible-hyper"
+  | "insufficient";
+
+type EvalResult = {
+  type: ResultType;
+  headline: string;   // e.g., "Hypothyroid (হাইপো থাইরয়েড)"
+  advisory: string;   // Bengali advisory copy
+  severity: "green" | "amber" | "red";
+};
+
+/* Reference ranges (units kept for UI hints) */
 const RANGES = {
   tsh: { lo: 0.4, hi: 4.0, unit: "mIU/L" },
   ft4: { lo: 0.8, hi: 1.8, unit: "ng/dL" },
@@ -20,19 +37,127 @@ const RANGES = {
   tt3: { lo: 80, hi: 200, unit: "ng/dL" },
 } as const;
 
+/* ---------- Core evaluator implementing the specified logic ---------- */
+function evaluateThyroid({
+  tsh,
+  ft4,
+}: {
+  tsh?: number | null;
+  ft4?: number | null;
+}): EvalResult {
+  const hasTSH = tsh !== undefined && tsh !== null && !Number.isNaN(tsh);
+  const hasFT4 = ft4 !== undefined && ft4 !== null && !Number.isNaN(ft4);
+
+  const R = { tsh: { lo: 0.4, hi: 4.0 }, ft4: { lo: 0.8, hi: 1.8 } };
+
+  // 1) TSH + FT4 available → full classification
+  if (hasTSH && hasFT4) {
+    // Normal
+    if (tsh! >= R.tsh.lo && tsh! <= R.tsh.hi && ft4! >= R.ft4.lo && ft4! <= R.ft4.hi) {
+      return {
+        type: "normal",
+        headline: "Euthyroid (স্বাভাবিক)",
+        advisory: "আপনার রিপোর্ট স্বাভাবিক সীমায় আছে। নিয়মিত ফলো-আপ রাখুন।",
+        severity: "green",
+      };
+    }
+    // Overt Hypo
+    if (tsh! > R.tsh.hi && ft4! < R.ft4.lo) {
+      return {
+        type: "hypo",
+        headline: "Hypothyroid (হাইপো থাইরয়েড)",
+        advisory: "আপনার থাইরয়েড হরমোন কম আছে। দ্রুত চিকিৎসকের পরামর্শ নিন।",
+        severity: "red",
+      };
+    }
+    // Overt Hyper
+    if (tsh! < R.tsh.lo && ft4! > R.ft4.hi) {
+      return {
+        type: "hyper",
+        headline: "Hyperthyroid (হাইপার থাইরয়েড)",
+        advisory: "আপনার থাইরয়েড হরমোন বেশি আছে। দ্রুত চিকিৎসকের পরামর্শ নিন।",
+        severity: "red",
+      };
+    }
+    // Subclinical Hypo
+    if (tsh! > R.tsh.hi && ft4! >= R.ft4.lo && ft4! <= R.ft4.hi) {
+      return {
+        type: "sub-hypo",
+        headline: "Subclinical Hypothyroidism (সাবক্লিনিকাল হাইপো)",
+        advisory: "TSH বেশি কিন্তু FT4 স্বাভাবিক। নিশ্চিত হতে চিকিৎসকের পরামর্শ নিন।",
+        severity: "amber",
+      };
+    }
+    // Subclinical Hyper
+    if (tsh! < R.tsh.lo && ft4! >= R.ft4.lo && ft4! <= R.ft4.hi) {
+      return {
+        type: "sub-hyper",
+        headline: "Subclinical Hyperthyroidism (সাবক্লিনিকাল হাইপার)",
+        advisory: "TSH কম কিন্তু FT4 স্বাভাবিক। নিশ্চিত হতে চিকিৎসকের পরামর্শ নিন।",
+        severity: "amber",
+      };
+    }
+
+    // 8) Insufficient / Discordant (e.g., both high or both low)
+    return {
+      type: "insufficient",
+      headline: "Insufficient data (বৈষম্য আছে)",
+      advisory:
+        "রিপোর্টে বৈষম্য আছে বা তথ্য অসম্পূর্ণ। সঠিক সিদ্ধান্তের জন্য Free T3/Free T4/TSH পুনরায় করুন ও চিকিৎসকের পরামর্শ নিন।",
+      severity: "amber",
+    };
+  }
+
+  // 6–7) TSH-only extremes
+  if (hasTSH && !hasFT4) {
+    if (tsh! >= 10) {
+      return {
+        type: "possible-hypo",
+        headline: "Possibly Hypothyroid (প্রবল সম্ভাবনা)",
+        advisory: "TSH অনেক বেশি। নিশ্চিত করতে FT4/FT3 টেস্ট করুন এবং চিকিৎসকের পরামর্শ নিন।",
+        severity: "red",
+      };
+    }
+    if (tsh! <= 0.01) {
+      return {
+        type: "possible-hyper",
+        headline: "Possibly Hyperthyroid (প্রবল সম্ভাবনা)",
+        advisory: "TSH খুব কম। নিশ্চিত করতে FT4/FT3 টেস্ট করুন এবং চিকিৎসকের পরামর্শ নিন।",
+        severity: "red",
+      };
+    }
+    // Borderline TSH-only → insufficient
+    if (tsh! < R.tsh.lo || tsh! > R.tsh.hi) {
+      return {
+        type: "insufficient",
+        headline: "Insufficient data",
+        advisory:
+          "TSH স্বাভাবিক নয়, কিন্তু সিদ্ধান্তের জন্য আরো তথ্য দরকার। FT4 ও FT3 টেস্ট করুন।",
+        severity: "amber",
+      };
+    }
+  }
+
+  // Missing TSH or other partial inputs → insufficient
+  return {
+    type: "insufficient",
+    headline: "Insufficient data",
+    advisory:
+      "সিদ্ধান্তের জন্য পর্যাপ্ত তথ্য নেই। TSH, Free T4 এবং প্রয়োজনে Free T3 দিন।",
+    severity: "amber",
+  };
+}
+
 export default function ThyroidCalculator() {
   const [inputs, setInputs] = useState<Inputs>({ tsh: "", ft4: "", ft3: "", tt4: "", tt3: "" });
-  const [result, setResult] = useState<string>("Indeterminate");
+  const [result, setResult] = useState<EvalResult | null>(null);
   const [hasCalculated, setHasCalculated] = useState<boolean>(false);
   const [activeModal, setActiveModal] = useState<Modal>(null);
   const firstInputRef = useRef<HTMLInputElement>(null!);
 
   const enteredCount = useMemo(
     () =>
-      (Object.keys(inputs) as InputKey[]).reduce(
-        (n, k) => n + (inputs[k] ? 1 : 0),
-        0
-      ),
+      (Object.keys(inputs) as InputKey[]).reduce((n, k) => n + (inputs[k] ? 1 : 0), 0),
     [inputs]
   );
 
@@ -46,7 +171,7 @@ export default function ThyroidCalculator() {
 
   const resetAll = () => {
     setInputs({ tsh: "", ft4: "", ft3: "", tt4: "", tt3: "" });
-    setResult("Indeterminate");
+    setResult(null);
     setHasCalculated(false);
     setActiveModal(null);
     setTimeout(() => firstInputRef.current?.focus(), 0);
@@ -57,110 +182,14 @@ export default function ThyroidCalculator() {
     const n = Number(v);
     return Number.isFinite(n) ? n : undefined;
   }
-  function inRange(name: keyof typeof RANGES, v: number) {
-    const { lo, hi } = RANGES[name];
-    return v >= lo && v <= hi;
-  }
-  function stateFrom(name: keyof typeof RANGES, v: number) {
-    const { lo, hi } = RANGES[name];
-    if (v < lo) return "Hypothyroid";
-    if (v > hi) return "Hyperthyroid";
-    return "Euthyroid";
-  }
 
-  function compute(): string {
+  function onCalculate() {
     const tsh = parseNum(inputs.tsh);
     const ft4 = parseNum(inputs.ft4);
-    const ft3 = parseNum(inputs.ft3);
-    const tt4 = parseNum(inputs.tt4);
-    const tt3 = parseNum(inputs.tt3);
-
-    const t4 = ft4 ?? (ft4 === undefined ? tt4 ?? undefined : undefined);
-    const t3 = ft3 ?? (ft3 === undefined ? tt3 ?? undefined : undefined);
-
-    const tshKind = tsh === undefined ? undefined : stateFrom("tsh", tsh);
-    const t4Kind =
-      t4 === undefined
-        ? undefined
-        : ft4 !== undefined
-        ? stateFrom("ft4", t4)
-        : stateFrom("tt4", t4);
-    const t3Kind =
-      t3 === undefined
-        ? undefined
-        : ft3 !== undefined
-        ? stateFrom("ft3", t3)
-        : stateFrom("tt3", t3);
-
-    const providedKinds = [tshKind, t4Kind, t3Kind].filter(Boolean);
-    if (providedKinds.length === 0) return "Indeterminate";
-
-    // Overt hypo: high TSH + low T4
-    if (tsh !== undefined && tsh > RANGES.tsh.hi) {
-      const lowT4 =
-        (ft4 !== undefined && ft4 < RANGES.ft4.lo) ||
-        (ft4 === undefined && tt4 !== undefined && tt4 < RANGES.tt4.lo);
-      if (lowT4) return "Hypothyroid";
-    }
-
-    // Overt hyper: low TSH + high T4 or high T3
-    if (tsh !== undefined && tsh < RANGES.tsh.lo) {
-      const highT4 =
-        (ft4 !== undefined && ft4 > RANGES.ft4.hi) ||
-        (ft4 === undefined && tt4 !== undefined && tt4 > RANGES.tt4.hi);
-      const highT3 =
-        (ft3 !== undefined && ft3 > RANGES.ft3.hi) ||
-        (ft3 === undefined && tt3 !== undefined && tt3 > RANGES.tt3.hi);
-      if (highT4 || highT3) return "Hyperthyroid";
-    }
-
-    // Subclinical hypo: high TSH + normal T4
-    if (tsh !== undefined && tsh > RANGES.tsh.hi) {
-      const normalT4 =
-        (ft4 !== undefined && inRange("ft4", ft4)) ||
-        (ft4 === undefined && tt4 !== undefined && inRange("tt4", tt4));
-      if (normalT4) return "Subclinical Hypothyroidism";
-    }
-
-    // Subclinical hyper: low TSH + normal T4 + normal T3
-    if (tsh !== undefined && tsh < RANGES.tsh.lo) {
-      const normalT4 =
-        (ft4 !== undefined && inRange("ft4", ft4)) ||
-        (ft4 === undefined && tt4 !== undefined && inRange("tt4", tt4));
-      const normalT3 =
-        (ft3 !== undefined && inRange("ft3", ft3)) ||
-        (ft3 === undefined && tt3 !== undefined && inRange("tt3", tt3));
-      if (normalT4 && normalT3) return "Subclinical Hyperthyroidism";
-    }
-
-    // All provided within range
-    const allInRange =
-      (tsh === undefined || inRange("tsh", tsh)) &&
-      (ft4 === undefined || inRange("ft4", ft4)) &&
-      (ft3 === undefined || inRange("ft3", ft3)) &&
-      (ft4 !== undefined || tt4 === undefined || inRange("tt4", tt4)) &&
-      (ft3 !== undefined || tt3 === undefined || inRange("tt3", tt3));
-    if (allInRange) return "Euthyroid";
-
-    // Mixed states
-    if (providedKinds.length >= 2 && new Set(providedKinds).size > 1) return "Imbalance/Discordant";
-    return "Imbalance/Discordant";
-  }
-
-  const onCalculate = () => {
-    setResult(compute());
+    const evalRes = evaluateThyroid({ tsh, ft4 });
+    setResult(evalRes);
     setHasCalculated(true);
-  };
-
-  const isNormalPath = result === "Euthyroid";
-  const isImbalancePath = result !== "Indeterminate" && !isNormalPath;
-
-  const secondaryMsg =
-    result === "Euthyroid"
-      ? "✅ অভিনন্দন, কোনো সমস্যা পাওয়া যায়নি।"
-      : isImbalancePath
-      ? "⚠️ আপনার রিপোর্টে অসামঞ্জস্য পাওয়া গেছে। আপনার আরও পরামর্শের প্রয়োজন হতে পারে।"
-      : "";
+  }
 
   return (
     <div className="calc-wrap">
@@ -190,6 +219,7 @@ export default function ThyroidCalculator() {
             unit={RANGES.ft4.unit}
             hint={`Normal: ${RANGES.ft4.lo}–${RANGES.ft4.hi} ${RANGES.ft4.unit}`}
           />
+          {/* Optional fields kept for completeness and UI parity */}
           <Field
             id="ft3"
             label="Free T3"
@@ -221,33 +251,66 @@ export default function ThyroidCalculator() {
 
           {/* Result section */}
           <div className="resultBox" role="region" aria-live="polite">
-            {hasCalculated && (
+            {hasCalculated && result && (
               <>
-                <div className="resultPill">
+                <div
+                  className="resultPill"
+                  style={{
+                    background:
+                      result.severity === "green"
+                        ? "#dcfce7"
+                        : result.severity === "red"
+                        ? "#fee2e2"
+                        : "#fef9c3",
+                  }}
+                >
                   <div className="pillTitle">Result</div>
-                  <div className="pillOutcome">{result}</div>
+                  <div
+                    className="pillOutcome"
+                    style={{
+                      color:
+                        result.severity === "green"
+                          ? "#059669"
+                          : result.severity === "red"
+                          ? "#dc2626"
+                          : "#b45309",
+                    }}
+                  >
+                    {result.headline}
+                  </div>
                 </div>
 
-                {secondaryMsg && (
-                  <div className="adviceRow">
-                    <div className="adviceCard">
-                      <div className="adviceLine">
-                        <span style={{ fontSize: 20 }}></span>
-                        <p style={{ margin: 0 }}>{secondaryMsg}</p>
-                      </div>
-                    </div>
-                    <button
-                      className="btnNextLg"
-                      onClick={() => setActiveModal(isNormalPath ? "A" : "C")}
-                    >
-                      NEXT
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+                <div className="adviceRow">
+                  <div
+                    className="adviceCard"
+                    style={{
+                      borderColor:
+                        result.severity === "green"
+                          ? "#bbf7d0"
+                          : result.severity === "red"
+                          ? "#fecaca"
+                          : "#fde68a",
+                    }}
+                  >
+<div className="adviceLine">
+  <p style={{ margin: 0 }}>
+    {result.type !== "normal" && "⚠️ "}
+    {result.advisory}
+  </p>
+</div>
+</div>
+<button
+  className="btnNextLg"
+  onClick={() => setActiveModal(result.type === "normal" ? "A" : "C")}
+>
+  NEXT
+</button>
+</div>
+</>
+)}
+</div>
+</div>
+
 
         <div className="footer">
           Educational use only. Not a diagnostic tool. Consult a qualified clinician for decisions.
