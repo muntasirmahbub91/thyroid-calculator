@@ -314,3 +314,28 @@ button.btn:hover:not(.btn-green), a.btn:hover:not(.btn-green),
 
 /* Optional: keep system text scaling sane */
 html{ -webkit-text-size-adjust:100%; }
+/* Help items: unified look for all */
+.helpItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding: 14px 18px;
+  border-radius: 12px;
+
+  background: var(--blue);   /* 🔹 all same matte blue */
+  color: #fff;
+
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+
+  box-shadow: var(--shadow-sm);
+  transition: background .2s, transform .2s, box-shadow .2s;
+}
+
+.helpItem:hover {
+  background: var(--blue-700);  /* 🔹 hover = slightly darker blue */
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+}
