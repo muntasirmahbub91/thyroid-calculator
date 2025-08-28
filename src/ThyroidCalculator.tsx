@@ -293,7 +293,7 @@ export default function ThyroidCalculator() {
                     }}
                   >
 <div className="adviceLine">
-  <p style={{ margin: 0 }}>
+  <p style={{ margin: 0, fontSize: "18px", fontWeight: 600, lineHeight: 1.6 }}>
     {result.type !== "normal" && "⚠️ "}
     {result.advisory}
   </p>
